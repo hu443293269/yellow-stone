@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <link href="./element.css" rel="stylesheet">
+    <!-- Import Vue 3 -->
+    <script src="./vue.js"></script>
+    <!-- Import component library -->
+    <script src="./element.js"></script>
+    <meta charset="UTF-8">
+    <title>Connected Squares</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #2c3e50;
+            margin: 0;
+        }
+
+        /* styles.css */
+        #app {
+            width: 100%;
+            height: 100%;
+        }
+
+        .function {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+        }
+
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            /* padding: 20px; */
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            left: 20px;
+            /* z-index: 3; */
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .row-divide {
+            /* height: 8px; */
+            z-index: 10;
+            position: relative;
+            background-color: #fff;
+        }
+
+        .container-divide {
+            /* width: 4px; */
+            z-index: 10;
+            background-color: #fff;
+        }
+
+        .key {
+            width: 60px;
+            height: 60px;
+            background-color: #ecf0f1;
+            color: #34495e00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+
+        /* 图片覆盖层 */
+        .input-image {
+            /* border: 2px dashed #ccc; */
+            overflow: hidden;
+            /* 防止图片阻挡键盘点击 */
+        }
+
+        .resizable {
+            position: absolute;
+            z-index: 2;
+            top: 30px;
+            left: 50px;
+            height: 300px;
+            /* border: 2px solid #333; */
+            cursor: grab;
+            /* 拖拽移动图片的光标 */
+        }
+
+        .draggable-image {
+            display: block;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+            /* 防止图片被选中 */
+        }
+
+        .resize-handle {
+            position: absolute;
+            background-color: #333;
+        }
+
+        .resize-handle.top {
+            top: -5px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            cursor: ns-resize;
+            /* 上下调整大小的光标 */
+        }
+
+        .resize-handle.right {
+            top: 0;
+            right: -5px;
+            width: 10px;
+            height: 100%;
+            cursor: ew-resize;
+            /* 左右调整大小的光标 */
+        }
+
+        .resize-handle.bottom {
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            cursor: ns-resize;
+            /* 上下调整大小的光标 */
+        }
+
+        .resize-handle.left {
+            top: 0;
+            left: -5px;
+            width: 10px;
+            height: 100%;
+            cursor: ew-resize;
+            /* 左右调整大小的光标 */
+        }
+
+        .container-word {
+            position: relative;
+            width: 60px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid transparent;
+            /* 边框 */
+            background-color: transparent;
+            /* border-radius: 10%; */
+            text-align: center;
+            font-size: 13px;
+            /* line-height: 25px; */
+            top: 0;
+        }
+
+        /* 键帽 */
+        .container {
+            position: relative;
+            width: 60px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .inner-square {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%);
+            width: 65%;
+            /* 小正方形宽度 */
+            height: 75%;
+            /* 小正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            border-radius: 10%;
+            /* z-index: 100; */
+        }
+
+        .line {
+            position: absolute;
+            background-color: #969696;
+            /* z-index: 100; */
+            /* 线条颜色 */
+        }
+
+        /* 连接左上角 */
+        .line.top-left {
+            width: 12%;
+            height: 1%;
+            top: 2%;
+            left: 3%;
+            transform-origin: left;
+            transform: rotate(3deg);
+        }
+
+        /* 连接右上角 */
+        .line.top-right {
+            width: 12%;
+            height: 1%;
+            top: 2%;
+            right: 3%;
+            transform-origin: right;
+            transform: rotate(-3deg);
+        }
+
+        /* 连接左下角 */
+        .line.bottom-left {
+            width: 22%;
+            height: 1%;
+            bottom: 3%;
+            left: 2%;
+            transform-origin: left;
+            transform: rotate(-50deg);
+        }
+
+        /* 连接右下角 */
+        .line.bottom-right {
+            width: 22%;
+            height: 1%;
+            bottom: 3%;
+            right: 2%;
+            transform-origin: right;
+            transform: rotate(50deg);
+        }
+
+        /* backspace键帽 */
+        .backspace {
+            position: relative;
+            width: 122.5px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .backspace .inner-square {
+            width: 85%;
+        }
+
+        .backspace .top-left {
+            width: 4%;
+        }
+
+        .backspace .top-right {
+            width: 4%;
+        }
+
+        .backspace .bottom-left {
+            width: 10%;
+            transform: rotate(-60deg);
+        }
+
+        .backspace .bottom-right {
+            width: 10%;
+            transform: rotate(60deg);
+        }
+
+        /* tab键帽 */
+        .tab {
+            position: relative;
+            width: 91.3px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .tab .inner-square {
+            width: 80%;
+        }
+
+        .tab .top-left {
+            width: 7%;
+        }
+
+        .tab .top-right {
+            width: 7%;
+        }
+
+        .tab .bottom-left {
+            width: 14%;
+            transform: rotate(-60deg);
+        }
+
+        .tab .bottom-right {
+            width: 14%;
+            transform: rotate(60deg);
+        }
+
+
+        .plus {
+            position: absolute;
+            width: 60px;
+            /* 大正方形宽度 */
+            height: 122px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+            z-index: 1;
+            line-height: 118px;
+        }
+
+        .plus .inner-square {
+            width: 65%;
+            height: 90%;
+        }
+
+        .plus .top-left {
+            width: 14%;
+            top: 1%;
+        }
+
+        .plus .top-right {
+            width: 14%;
+            top: 1%;
+        }
+
+        .plus .bottom-left {
+            width: 22%;
+            bottom: 0;
+        }
+
+        .plus .bottom-right {
+            width: 22%;
+            bottom: 0;
+        }
+
+        /* caps键帽 */
+        .caps {
+            position: relative;
+            width: 105px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .caps .inner-square {
+            width: 82%;
+        }
+
+        .caps .top-left {
+            width: 9%;
+        }
+
+        .caps .top-right {
+            width: 9%;
+        }
+
+        .caps .bottom-left {
+            width: 12%;
+            transform: rotate(-60deg);
+        }
+
+        .caps .bottom-right {
+            width: 12%;
+            transform: rotate(60deg);
+        }
+
+        /* enter键帽 */
+        .enter {
+            position: relative;
+            width: 140.3px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .enter .inner-square {
+            width: 86%;
+        }
+
+        .enter .top-left {
+            width: 9%;
+        }
+
+        .enter .top-right {
+            width: 9%;
+        }
+
+        .enter .bottom-left {
+            width: 9%;
+            transform: rotate(-58deg);
+        }
+
+        .enter .bottom-right {
+            width: 9%;
+            transform: rotate(58deg);
+        }
+
+        /* shift键帽 */
+        .shift {
+            position: relative;
+            width: 142px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .shift .inner-square {
+            width: 87%;
+        }
+
+        .shift .top-left {
+            width: 9%;
+        }
+
+        .shift .top-right {
+            width: 9%;
+        }
+
+        .shift .bottom-left {
+            width: 9%;
+            transform: rotate(-58deg);
+        }
+
+        .shift .bottom-right {
+            width: 9%;
+            transform: rotate(58deg);
+        }
+
+        /* shift2键帽 */
+        .shift2 {
+            position: relative;
+            width: 103px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .shift2 .inner-square {
+            width: 88%;
+        }
+
+        .shift2 .top-left {
+            width: 3%;
+            transform: rotate(14deg);
+        }
+
+        .shift2 .top-right {
+            width: 3%;
+            transform: rotate(-14deg);
+        }
+
+        .shift2 .bottom-left {
+            width: 8%;
+            transform: rotate(-60deg);
+        }
+
+        .shift2 .bottom-right {
+            width: 8%;
+            transform: rotate(60deg);
+        }
+        /* shift1键帽 */
+        .shift1 {
+            position: relative;
+            width: 165.5px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .shift1 .inner-square {
+            width: 88%;
+        }
+
+        .shift1 .top-left {
+            width: 3%;
+            transform: rotate(14deg);
+        }
+
+        .shift1 .top-right {
+            width: 3%;
+            transform: rotate(-14deg);
+        }
+
+        .shift1 .bottom-left {
+            width: 8%;
+            transform: rotate(-60deg);
+        }
+
+        .shift1 .bottom-right {
+            width: 8%;
+            transform: rotate(60deg);
+        }
+
+        /* ctrl键帽 */
+        .ctrl {
+            position: relative;
+            width: 74px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .ctrl .inner-square {
+            width: 73%;
+        }
+
+        .ctrl .top-left {
+            width: 9%;
+        }
+
+        .ctrl .top-right {
+            width: 9%;
+        }
+
+        .ctrl .bottom-left {
+            width: 17%;
+            transform: rotate(-55deg);
+        }
+
+        .ctrl .bottom-right {
+            width: 17%;
+            transform: rotate(55deg);
+        }
+
+        /* space键帽 */
+        .space {
+            position: relative;
+            width: 398px;
+            /* 大正方形宽度 */
+            height: 60px;
+            /* 大正方形高度 */
+            border: 1px solid #969696;
+            /* 边框 */
+            background-color: #fff;
+            /* border-radius: 10%; */
+        }
+
+        .space .inner-square {
+            width: 95%;
+        }
+
+        .space .top-left {
+            width: 2%;
+            top: 3%;
+            left: 0%;
+            transform: rotate(10deg);
+        }
+
+        .space .top-right {
+            width: 2%;
+            top: 3%;
+            right: 0%;
+            transform: rotate(-10deg);
+        }
+
+        .space .bottom-left {
+            width: 4%;
+            transform: rotate(305deg);
+            left: 0%;
+        }
+
+        .space .bottom-right {
+            width: 4%;
+            transform: rotate(-305deg);
+            right: 0%;
+        }
+
+        /* 文字覆盖层 */
+        .word-layout {
+            background-color: transparent;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            left: 20px;
+            width: 1530px;
+            height: 423px;
+            visibility: hidden;
+            z-index: 30;
+            color: #4f4f4f;
+            display: none;
+        }
+
+        .hat-img {
+            width: 16px;
+            margin-left: 5px;
+            margin-top: 5px;
+        }
+
+        .plus-hat {
+            z-index: 10;
+            width: 20px;
+            background-color: #fff;
+            position: absolute;
+            height: 132px;
+            right: 0;
+        }
+
+        .el-upload-list--picture-card {
+            flex-wrap: nowrap
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <el-row style="padding:20px;">
+            <el-col :span="14" style="overflow: auto;">
+                <el-upload action="#" list-type="picture-card" :auto-upload="false" :on-change="uploadChange">
+                    <span>选择图片+</span>
+                </el-upload>
+            </el-col>
+            <el-col :span="6">
+                <el-button type="primary" @click="borderStyle">边框效果</el-button>
+                <el-button type="primary" @click="hatChange">键帽格式</el-button>
+                <el-button type="primary" @click="wordStyle">文字显影</el-button>
+                <el-button type="primary" @click="carve">正刻/侧刻</el-button>
+                <div style="margin-top: 20px;">
+                    <span style="color: #fff;">底座颜色：</span>
+                    <el-select v-model="seatColor" @change="seatChange">
+                        <el-option label="白色" value="#fff"></el-option>
+                        <el-option label="黑色" value="#000"></el-option>
+                    </el-select>
+                </div>
+                <div style="margin-top: 20px;">
+                    <span style="color: #fff;">类型：</span>
+                    <el-select v-model="type" @change="typeChange">
+                        <el-option label="108" :value="1"></el-option>
+                        <el-option label="82" :value="2"></el-option>
+                        <el-option label="102" :value="3"></el-option>
+                        <el-option label="60" :value="4"></el-option>
+                        <el-option label="80" :value="5"></el-option>
+                        <el-option label="68" :value="6"></el-option>
+                        <el-option label="夜魔" :value="7"></el-option>
+                        <el-option label="98" :value="8"></el-option>
+                        <el-option label="64" :value="9"></el-option>
+                    </el-select>
+                </div>
+            </el-col>
+            <el-col :span="2">
+                <span style="color: #fff;">键帽颜色：</span><el-color-picker v-model="color" />
+            </el-col>
+        </el-row>
+        <div class="keyboard" id="keyboard">
+            <!-- 第一行 -->
+            <div class="row-divide" style="height:20px;"></div>
+            <div v-for="item in hatList">
+                <div class="row">
+                    <span class="container-divide" style="width: 20px;"></span>
+                    <span v-for="hat in item.container" style="display: inline-flex;">
+                        <div :class="[hat.type, 'container']">
+                            <div style="visibility: visible;">
+                                <div class="inner-square"></div>
+                                <div class="line top-left"></div>
+                                <div class="line top-right"></div>
+                                <div class="line bottom-left"></div>
+                                <div class="line bottom-right"></div>
+                            </div>
+                        </div>
+                        <span v-if="hat.type!=='plus'" class="container-divide"
+                            :style="{width:hat.divide?hat.divide+'px': '1px'}"></span>
+                        <span v-else class="plus-hat"></span>
+                    </span>
+                </div>
+                <div class="row-divide"
+                    :style="{height:item.divideHeight?item.divideHeight+'px':'1px', width:item.divideLength?item.divideLength+'px':'100%'}">
+                </div>
+            </div>
+        </div>
+        <!-- 图片覆盖层 -->
+        <div class="input-image"></div>
+        <!-- 文字覆盖层 -->
+        <div class="word-layout">
+            <div v-for="item in hatList">
+                <div class="row">
+                    <span v-for="hat in item.container" style="display: inline-flex;">
+                        <div :class="[hat.type, 'container-word']">
+                            <div style="visibility: visible;">
+                                <span v-if="hat.svg">
+                                    <img :src="hat.svgValue" alt="" class="hat-img">
+                                </span>
+                                <span v-else>{{hat.word}}</span>
+                            </div>
+                        </div>
+                        <span v-if="hat.type!=='plus'" class="container-divide"
+                            :style="{width:hat.divide?hat.divide+'px': '1px'}"></span>
+                    </span>
+                </div>
+                <div class="row-divide"
+                    :style="{height:item.divideHeight?item.divideHeight+'px':'1px', width:item.divideLength?item.divideLength+'px':'100%'}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+<script>
+    function imageListen() {
+        // script.js
+        const resizableElements = document.querySelectorAll('.resizable');
+
+        resizableElements.forEach(resizable => {
+            const resizeHandles = resizable.querySelectorAll('.resize-handle');
+            const image = resizable.querySelector('.draggable-image');
+
+            let isResizing = false;
+            let isDragging = false;
+            let currentHandle;
+            let startX, startY;
+            let startWidth, startHeight;
+            let startTop, startLeft;
+
+            // 拖拽调整大小
+            resizeHandles.forEach(handle => {
+                handle.addEventListener('mousedown', (e) => {
+                    isResizing = true;
+                    currentHandle = e.target;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = parseInt(window.getComputedStyle(resizable).width, 10);
+                    startHeight = parseInt(window.getComputedStyle(resizable).height, 10);
+                    startTop = parseInt(window.getComputedStyle(resizable).top, 10);
+                    startLeft = parseInt(window.getComputedStyle(resizable).left, 10);
+
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', stopResize);
+
+                });
+            });
+
+            // 拖拽移动图片
+            image.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                startTop = parseInt(window.getComputedStyle(resizable).top, 10);
+                startLeft = parseInt(window.getComputedStyle(resizable).left, 10);
+
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', stopDrag);
+            });
+
+            // 鼠标移动时处理逻辑
+            function handleMouseMove(e) {
+                if (isResizing) {
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+
+                    if (currentHandle.classList.contains('top')) {
+                        // 调整上边框
+                        const newHeight = startHeight - deltaY;
+                        const newTop = startTop + deltaY;
+
+                        if (newHeight > 20) { // 设置最小高度
+                            resizable.style.height = `${newHeight}px`;
+                            resizable.style.top = `${newTop}px`;
+                        }
+                    } else if (currentHandle.classList.contains('right')) {
+                        // 调整右边框
+                        const newWidth = startWidth + deltaX;
+
+                        if (newWidth > 20) { // 设置最小宽度
+                            resizable.style.width = `${newWidth}px`;
+                        }
+                    } else if (currentHandle.classList.contains('bottom')) {
+                        // 调整下边框
+                        const newHeight = startHeight + deltaY;
+
+                        if (newHeight > 20) { // 设置最小高度
+                            resizable.style.height = `${newHeight}px`;
+                        }
+                    } else if (currentHandle.classList.contains('left')) {
+                        // 调整左边框
+                        const newWidth = startWidth - deltaX;
+                        const newLeft = startLeft + deltaX;
+
+                        if (newWidth > 20) { // 设置最小宽度
+                            resizable.style.width = `${newWidth}px`;
+                            resizable.style.left = `${newLeft}px`;
+                        }
+                    }
+                } else if (isDragging) {
+                    // 拖拽移动图片
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+
+                    resizable.style.top = `${startTop + deltaY}px`;
+                    resizable.style.left = `${startLeft + deltaX}px`;
+                }
+
+            }
+
+            // 停止调整大小
+            function stopResize() {
+                isResizing = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', stopResize);
+            }
+
+            // 停止拖拽移动
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+        });
+    }
+    const HelloVueApp = {
+        data() {
+            return {
+                color: '#ffffff',
+                seatColor: '#fff',
+                hatList: [],
+                hatList1:[
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 64, word: 'Esc' }, { divide: 0, word: 'F1' }, { divide: 0, word: 'F2' }, { divide: 0, word: 'F3' }, { divide: 32, word: 'F4' }, { divide: 0, word: 'F5' }, { divide: 0, word: 'F6' }, { divide: 0, word: 'F7' },
+                    { divide: 32, word: 'F8' }, { divide: 0, word: 'F9' }, { divide: 0, word: 'F10' }, { divide: 0, word: 'F11' }, { divide: 10, word: 'F12' },
+                    { divide: 0, word: 'PrtSc' },{ divide: 0, word: 'ScLock' },{ divide: 10, word: 'Pause' },{ divide: 0, word: 'voice-' }, { divide: 0, word: 'voive+' },
+                    { divide: 0, word: 'voice0' }, { divide: 20, word: 'Cal' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: '` ~' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 10, type: 'backspace', word: '←' }, { divide: 0, word: 'Insert' }, { divide: 0, word: 'Home' }, { divide: 10, word: 'PgUp' }, { divide: 0, word: 'Num' },
+                    { divide: 0, word: '/' }, { divide: 0, word: '*' }, { divide: 20, word: '-' }]
+                },
+                {
+                    divideHeight: 1,
+                    divideLength: 1350,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 10, type: 'tab', word: '\\ |' }, { divide: 0, word: 'Delete' }, { divide: 0, word: 'End' }, { divide: 10, word: 'PgDn' }, { divide: 0, word: '7' },
+                    { divide: 0, word: '8 ▴' }, { divide: 0, word: '9' }, { divide: 20, type: 'plus', word: '' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 205.5, type: 'enter', word: 'Enter' }, { divide: 0, word: '4 ◂' },
+                    { divide: 0, word: '5' }, { divide: 0.7, word: '6 ▸' }]
+                },
+                {
+                    divideHeight: 1,
+                    divideLength: 1350,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 72, type: 'shift1', word: 'Shift' }, { divide: 72, word: '▲' }, { divide: 0, word: '1' },
+                    { divide: 0, word: '2 ▾' }, { divide: 0, word: '3' }, { divide: 20, type: 'plus', word: '' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, type: 'ctrl', word: 'Alt' },{ divide: 0, type: 'ctrl', word: 'Win' },{ divide: 0, type: 'ctrl', word: 'Menu' },
+                    { divide: 10, type: 'ctrl', word: 'Ctrl' }, { divide: 0, word: '◀' }, { divide: 0, word: '▼' },
+                    { divide: 10, word: '▶' }, { divide: 0.5, type: 'backspace', word: '0 Ins' }, { divide: 0.7, word: '.Del' }]
+                }
+                ],
+                hatList2:[
+                {
+                    divideHeight: 10,
+                    container: [{ divide: 16, word: 'Esc' }, { divide: 0, word: 'F1' }, { divide: 0, word: 'F2' }, { divide: 0, word: 'F3' }, { divide: 16, word: 'F4' }, { divide: 0, word: 'F5' }, { divide: 0, word: 'F6' }, { divide: 0, word: 'F7' },
+                    { divide: 16, word: 'F8' }, { divide: 0, word: 'F9' }, { divide: 0, word: 'F10' }, { divide: 0, word: 'F11' }, { divide: 16, word: 'F12' },
+                    { divide: 14, word: 'Ins' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: '`~' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 20, type: 'backspace', word: '←' }, { divide: 21, word: 'Del' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 20, type: 'tab', word: '\\ |' }, { divide: 21, word: 'PgUp' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 20, type: 'enter', word: 'Enter' }, { divide: 21, word: 'PgDn' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 0, type: 'shift2', word: 'Shift' }, { divide: 20, word: '▲' }, { divide: 21, word: 'End' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, word: 'Alt' }, { divide: 0, word: 'Fn' },
+                    { divide: 0, word: 'Ctrl' }, { divide: 0, word: '◀' }, { divide: 0, word: '▼' }, { divide: 21, word: '▶' }]
+                }
+                ],
+                hatList3:[
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 64, word: 'Esc' }, { divide: 0, word: 'F1' }, { divide: 0, word: 'F2' }, { divide: 0, word: 'F3' }, { divide: 32, word: 'F4' }, { divide: 0, word: 'F5' }, { divide: 0, word: 'F6' }, { divide: 0, word: 'F7' },
+                    { divide: 32, word: 'F8' }, { divide: 0, word: 'F9' }, { divide: 0, word: 'F10' }, { divide: 0, word: 'F11' }, { divide: 10, word: 'F12' },
+                    { divide: 10, word: 'Home' },{ divide: 0, word: 'Pause' }, { divide: 0, word: 'ScrLk' },
+                    { divide: 0, word: 'Print' }, { divide: 20, word: 'Del' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: '` ~' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 10, type: 'backspace', word: '←' }, { divide: 10, word: 'PgUp' }, { divide: 0, word: 'Num' },
+                    { divide: 0, word: '/' }, { divide: 0, word: '*' }, { divide: 20, word: '-' }]
+                },
+                {
+                    divideHeight: 1,
+                    divideLength: 1222.5,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 10, type: 'tab', word: '\\ |' }, { divide: 10, word: 'PgDn' }, { divide: 0, word: '7' },
+                    { divide: 0, word: '8 ▴' }, { divide: 0, word: '9' }, { divide: 20, type: 'plus', word: '' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 10, type: 'enter', word: 'Enter' }, { divide: 10, word: 'End' }, { divide: 0, word: '4 ◂' },
+                    { divide: 0, word: '5' }, { divide: 0.7, word: '6 ▸' }]
+                },
+                {
+                    divideHeight: 1,
+                    divideLength: 1222.5,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 0, type: 'shift2', word: 'Shift' }, { divide: 81.5, word: '▲' }, { divide: 0, word: '1' },
+                    { divide: 0, word: '2 ▾' }, { divide: 0, word: '3' }, { divide: 20, type: 'plus', word: '' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, type: 'ctrl', word: 'Fn' },
+                    { divide: 30.5, type: 'ctrl', word: 'Ctrl' }, { divide: 0, word: '◀' }, { divide: 0, word: '▼' },
+                    { divide: 19, word: '▶' }, { divide: 0.5, type: 'backspace', word: '0 Ins' }, { divide: 0.7, word: '.Del' }]
+                }
+                ],
+                hatList4:[
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: 'Esc' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 20, type: 'backspace', word: '←' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 20, type: 'tab', word: '\\ |' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 20, type: 'enter', word: 'Enter' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 20, type: 'shift1', word: 'Shift' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, type: 'ctrl', word: 'Alt' }, { divide: 0, type: 'ctrl', word: 'Win' },
+                    { divide: 0, type: 'ctrl', word: 'Ctrl' },{ divide: 20, type: 'ctrl', word: 'Fn' }]
+                }
+                ],
+                hatList5:[
+                {
+                    divideHeight: 10,
+                    container: [{ divide: 16, word: 'Esc' }, { divide: 0, word: 'F1' }, { divide: 0, word: 'F2' }, { divide: 0, word: 'F3' }, { divide: 16, word: 'F4' }, { divide: 0, word: 'F5' }, { divide: 0, word: 'F6' }, { divide: 0, word: 'F7' },
+                    { divide: 16, word: 'F8' }, { divide: 0, word: 'F9' }, { divide: 0, word: 'F10' }, { divide: 0, word: 'F11' }, { divide: 16, word: 'F12' },
+                    { divide: 14, word: 'Mode' }, { divide: 0, word: 'PrtSc' },{ divide: 14, word: 'Pause' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: '`~' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 14, type: 'backspace', word: '←' }, { divide: 0, word: 'Ins' }, { divide: 14, word: 'PgUp' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 14, type: 'tab', word: '\\ |' }, { divide: 0, word: 'Del' }, { divide: 14, word: 'PgDn' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 160, type: 'enter', word: 'Enter' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 14, type: 'shift1', word: 'Shift' }, { divide: 80, word: '▲' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, type: 'ctrl', word: 'Alt' }, { divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 29, type: 'ctrl', word: 'Fn' },
+                    { divide: 0, word: '◀' }, { divide: 0, word: '▼' }, { divide: 21, word: '▶' }]
+                }
+                ],
+                hatList6:[
+
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: 'Esc' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 0, type: 'backspace', word: '←' }, { divide: 21, word: 'Del' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 0, type: 'tab', word: '\\ |' }, { divide: 21, word: 'PgUp' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 0, type: 'enter', word: 'Enter' }, { divide: 21, word: 'PgDn' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 0, type: 'shift2', word: 'Shift' }, { divide: 0, word: '▲' }, { divide: 21, word: 'End' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, word: 'Alt' }, { divide: 0, word: 'Fn' },
+                    { divide: 0, word: 'Ctrl' }, { divide: 0, word: '◀' }, { divide: 0, word: '▼' }, { divide: 21, word: '▶' }]
+                }
+                ],
+                hatList7:[
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: 'Esc' }, { divide: 0, word: 'F1' }, { divide: 0, word: 'F2' }, { divide: 0, word: 'F3' }, { divide: 0, word: 'F4' }, { divide: 0, word: 'F5' }, { divide: 0, word: 'F6' }, { divide: 0, word: 'F7' },
+                    { divide: 0, word: 'F8' }, { divide: 0, word: 'F9' }, { divide: 0, word: 'F10' }, { divide: 0, word: 'F11' }, { divide: 0, word: 'F12' },
+                    { divide: 0, word: 'Home' },{ divide: 0, word: 'End' },{ divide: 21, word: 'PrtSc' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: '`~' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 0, type: 'backspace', word: '←' }, { divide: 21, word: 'Ins' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 0, type: 'tab', word: '\\ |' }, { divide: 21, word: 'Del' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 0, type: 'enter', word: 'Enter' }, { divide: 21, word: 'PgUp' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 0, type: 'shift2', word: 'Shift' }, { divide: 0, word: '▲' }, { divide: 21, word: 'PgDn' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, word: 'Alt' }, { divide: 0, word: 'Fn' },
+                    { divide: 0, word: 'Menu' }, { divide: 0, word: '◀' }, { divide: 0, word: '▼' }, { divide: 21, word: '▶' }]
+                }
+                ],
+                hatList8:[
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 64, word: 'Esc' }, { divide: 0, word: 'F1' }, { divide: 0, word: 'F2' }, { divide: 0, word: 'F3' }, { divide: 32, word: 'F4' }, { divide: 0, word: 'F5' }, { divide: 0, word: 'F6' }, { divide: 0, word: 'F7' },
+                    { divide: 32, word: 'F8' }, { divide: 0, word: 'F9' }, { divide: 0, word: 'F10' }, { divide: 0, word: 'F11' }, { divide: 19, word: 'F12' },
+                    { divide: 0, word: 'Pause' }, { divide: 0, word: 'ScrLk' },
+                    { divide: 0, word: 'Print' }, { divide: 20, word: 'Del' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: '` ~' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 19, type: 'backspace', word: '←' }, { divide: 0, word: 'Num' },
+                    { divide: 0, word: '/' }, { divide: 0, word: '*' }, { divide: 20, word: '-' }]
+                },
+                {
+                    divideHeight: 1,
+                    divideLength: 1162,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 19, type: 'tab', word: '\\ |' }, { divide: 0, word: '7' },
+                    { divide: 0, word: '8 ▴' }, { divide: 0, word: '9' }, { divide: 20, type: 'plus', word: '' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 19, type: 'enter', word: 'Enter' }, { divide: 0, word: '4 ◂' },
+                    { divide: 0, word: '5' }, { divide: 0.7, word: '6 ▸' }]
+                },
+                {
+                    divideHeight: 1,
+                    divideLength: 1162,
+                    container: [{ divide: 0, type: 'shift', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 8, type: 'shift2', word: 'Shift' }, { divide: 12, word: '▲' }, { divide: 0, word: '1' },
+                    { divide: 0, word: '2 ▾' }, { divide: 0, word: '3' }, { divide: 20, type: 'plus', word: '' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0, type: 'ctrl', word: 'Fn' },
+                    { divide: 36, type: 'ctrl', word: 'Ctrl' }, { divide: 0, word: '◀' }, { divide: 0, word: '▼' },
+                    { divide: 11, word: '▶' }, { divide: 0.5, word: '0' }, { divide: 0.7, word: '.Del' }]
+                }
+                ],
+                hatList9:[
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, word: 'Esc' }, { divide: 0, word: '1 !' }, { divide: 0, word: '2 @' },
+                    { divide: 0, word: '3 #' }, { divide: 0, word: '4 $' }, { divide: 0, word: '5 %' }, { divide: 0, word: '6 ^' }, { divide: 0, word: '7 &' },
+                    { divide: 0, word: '8 *' }, { divide: 0, word: '9 (' }, { divide: 0, word: '0 )' }, { divide: 0, word: '- _' }, { divide: 0, word: '= +' },
+                    { divide: 20, type: 'backspace', word: '←' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'tab', word: 'Tab' }, { divide: 0, word: 'Q' }, { divide: 0, word: 'W' },
+                    { divide: 0, word: 'E' }, { divide: 0, word: 'R' }, { divide: 0, word: 'T' }, { divide: 0, word: 'Y' }, { divide: 0, word: 'U' },
+                    { divide: 0, word: 'I' }, { divide: 0, word: 'O' }, { divide: 0, word: 'P' }, { divide: 0, word: '[ {' }, { divide: 0, word: '] }' },
+                    { divide: 20, type: 'tab', word: '\\ |' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'caps', word: 'Caps' }, { divide: 0, word: 'A' }, { divide: 0, word: 'S' },
+                    { divide: 0, word: 'D' }, { divide: 0, word: 'F' }, { divide: 0, word: 'G' }, { divide: 0, word: 'H' }, { divide: 0, word: 'J' },
+                    { divide: 0, word: 'K' }, { divide: 0, word: 'L' }, { divide: 0, word: ': ;' }, { divide: 0, word: '" \'' },
+                    { divide: 20, type: 'enter', word: 'Enter' }]
+                },
+                {
+                    divideHeight: 1,
+                    container: [{ divide: 0, type: 'backspace', word: 'Shift' }, { divide: 0, word: 'Z' }, { divide: 0, word: 'X' },
+                    { divide: 0, word: 'C' }, { divide: 0, word: 'V' }, { divide: 0, word: 'B' }, { divide: 0, word: 'N' }, { divide: 0, word: 'M' },
+                    { divide: 0, word: '< ,' }, { divide: 0, word: '> .' }, { divide: 0, word: '? /' },
+                    { divide: 0, word: 'Shift' }, { divide: 0, word: '▲' }, { divide: 20, word: 'Delete' }]
+                },
+                {
+                    divideHeight: 20,
+                    container: [{ divide: 0, type: 'ctrl', word: 'Ctrl' }, { divide: 0, type: 'ctrl', word: 'Win' }, { divide: 0, type: 'ctrl', word: 'Alt' },
+                    { divide: 0, type: 'space', word: '——' }, { divide: 0,  word: 'Alt' }, { divide: 0, word: 'Fn' }, { divide: 0, word: '◀' }, { divide: 0, word: '▼' },
+                    { divide: 20, word: '▶' }]
+                }
+                ],
+                type: 1
+            }
+        },
+        methods: {
+            wordStyle() {
+                const layout = document.getElementsByClassName('word-layout')
+                if (layout[0].style.display === 'block') {
+                    layout[0].style.display = 'none'
+                } else {
+                    layout[0].style.display = 'block'
+                }
+            },
+            carve() {
+                const carve = document.getElementsByClassName('container-word')                             
+                if (carve[0].style['top'] === '0px' || carve[0].style['top'] === '') {
+                    for (const key in carve) {
+                        if (Object.prototype.hasOwnProperty.call(carve, key)) {
+                            const element = carve[key];
+                            element.style['top'] = '44px'
+                            element.style['font-size'] = '10px'
+                        }
+                    }
+                    // const plus = document.getElementsByClassName('plus')
+                    // for (const key in plus) {
+                    //     if (Object.prototype.hasOwnProperty.call(plus, key)) {
+                    //         const element = plus[key];
+                    //         element.style['top'] = '220px'
+                    //     }
+                    // }
+                } else {                                        
+                    for (const key in carve) {
+                        if (Object.prototype.hasOwnProperty.call(carve, key)) {
+                            const element = carve[key];
+                            element.style['top'] = '0'
+                            element.style['font-size'] = '13px'
+                        }
+                    }
+                    // const plus = document.getElementsByClassName('plus')
+                    // for (const key in plus) {
+                    //     if (Object.prototype.hasOwnProperty.call(plus, key)) {
+                    //         const element = plus[key];
+                    //         element.style['top'] = '290px'
+                    //     }
+                    // }
+                }
+            },
+            uploadChange(val) {
+                const b = document.createElement('div')
+                b.className = 'resizable'
+                b.innerHTML = `<img src="${val.url}" alt="Resizable and Draggable Image" class="draggable-image" width="200px"
+                        height="300px">
+                     <div class="resize-handle top"></div>
+                     <div class="resize-handle right"></div>
+                     <div class="resize-handle bottom"></div>
+                     <div class="resize-handle left"></div>`
+                document.getElementsByClassName('input-image')[0].appendChild(b)
+                imageListen()
+            },
+            borderStyle() {
+                const a = document.getElementsByClassName('resize-handle')
+                // 给每个元素添加新的CSS类
+                const status = a[0].style['display']
+                for (var i = 0; i < a.length; i++) {
+                    if (status == 'none') {
+                        a[i].style['display'] = 'block'
+                    } else {
+                        a[i].style['display'] = 'none'
+                    }
+                }
+            },
+            hatChange() {
+                /// 获取所有具有指定类名的元素
+                let elements = document.getElementsByClassName("container");
+                if (elements[0].children[0].style.visibility === 'visible') {
+                    // 遍历所有元素并清空内容
+                    for (let i = 0; i < elements.length; i++) {
+                        elements[i].children[0].style.visibility = "hidden";
+                    }
+                } else {
+                    for (let i = 0; i < elements.length; i++) {
+                        elements[i].children[0].style.visibility = "visible";
+                    }
+                }
+            },
+            seatChange() {
+                const verticle = document.getElementsByClassName('container-divide')
+                for (let i = 0; i < verticle.length; i++) {
+                    verticle[i].style.backgroundColor = this.seatColor;
+                }
+                const row = document.getElementsByClassName('row')
+                for (let i = 0; i < row.length; i++) {
+                    row[i].style.backgroundColor = this.seatColor;
+                }
+                const rowD = document.getElementsByClassName('row-divide')
+                for (let i = 0; i < rowD.length; i++) {
+                    rowD[i].style.backgroundColor = this.seatColor;
+                }
+                const plus = document.getElementsByClassName('plus-hat')
+                for (let i = 0; i < rowD.length; i++) {
+                    plus[i].style.backgroundColor = this.seatColor;
+                }
+            },
+            typeChange(){
+                this.hatList = this['hatList'+[this.type]]
+            }
+        },
+        mounted() {
+            let _this = this
+            // 获取父容器
+            let parent = document.getElementById('keyboard')
+            // 在父容器上绑定点击事件
+            parent.addEventListener("click", function (event) {
+                // 检查点击的目标是否具有指定类名
+                if (event.target.classList.contains("container")) {
+                    event.target.style.backgroundColor = _this.color
+                    let child = event.target.querySelector(".inner-square");
+                    child.style.backgroundColor = _this.color
+                }
+                // 检查点击的目标是否具有指定类名
+                if (event.target.classList.contains("inner-square")) {
+                    event.target.style.backgroundColor = _this.color
+                    // 找到父元素
+                    let parent = event.target.parentElement.parentElement;
+                    parent.style.backgroundColor = _this.color
+                }
+            }, true);
+            this.hatList = this.hatList1
+        }
+    }
+
+    Vue.createApp(HelloVueApp).use(ElementPlus).mount('#app')
+
+</script>
+
+</html>
