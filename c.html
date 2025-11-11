@@ -7,8 +7,9 @@
     <script src="./vue.js"></script>
     <!-- Import component library -->
     <script src="./element.js"></script>
+    <link rel="icon" type="image/png" href="./image/logo.png">
     <meta charset="UTF-8">
-    <title>Connected Squares</title>
+    <title>登德键客</title>
     <style>
         body {
             display: flex;
@@ -111,7 +112,7 @@
             top: -5px;
             left: 0;
             width: 100%;
-            height: 10px;
+            height: 3px;
             cursor: ns-resize;
             /* 上下调整大小的光标 */
         }
@@ -119,7 +120,7 @@
         .resize-handle.right {
             top: 0;
             right: -5px;
-            width: 10px;
+            width: 3px;
             height: 100%;
             cursor: ew-resize;
             /* 左右调整大小的光标 */
@@ -129,7 +130,7 @@
             bottom: -5px;
             left: 0;
             width: 100%;
-            height: 10px;
+            height: 3px;
             cursor: ns-resize;
             /* 上下调整大小的光标 */
         }
@@ -137,7 +138,7 @@
         .resize-handle.left {
             top: 0;
             left: -5px;
-            width: 10px;
+            width: 3px;
             height: 100%;
             cursor: ew-resize;
             /* 左右调整大小的光标 */
@@ -639,14 +640,14 @@
 
 <body>
     <div id="app">
-        <el-row style="padding:20px;">
+        <el-row style="padding:20px;height: 200px;">
             <el-col :span="14" style="overflow: auto;">
-                <el-upload action="#" list-type="picture-card" :auto-upload="false" :on-change="uploadChange">
+                <el-upload action="#" list-type="picture-card" :auto-upload="false" :on-change="uploadChange" :before-remove="removeFile">
                     <span>选择图片+</span>
                 </el-upload>
             </el-col>
             <el-col :span="6">
-                <el-button type="primary" @click="borderStyle">边框效果</el-button>
+                <el-button type="primary" @click="borderStyle">图片大小</el-button>
                 <el-button type="primary" @click="hatChange">键帽格式</el-button>
                 <el-button type="primary" @click="wordStyle">文字显影</el-button>
                 <el-button type="primary" @click="carve">正刻/侧刻</el-button>
@@ -1278,10 +1279,11 @@
                 }
             },
             uploadChange(val) {
+                console.log(val);
+                
                 const b = document.createElement('div')
                 b.className = 'resizable'
-                b.innerHTML = `<img src="${val.url}" alt="Resizable and Draggable Image" class="draggable-image" width="200px"
-                        height="300px">
+                b.innerHTML = `<img src="${val.url}" id="${val.raw.uid}" alt="Resizable and Draggable Image" class="draggable-image" width="200px">
                      <div class="resize-handle top"></div>
                      <div class="resize-handle right"></div>
                      <div class="resize-handle bottom"></div>
@@ -1289,15 +1291,22 @@
                 document.getElementsByClassName('input-image')[0].appendChild(b)
                 imageListen()
             },
+            removeFile(val) {
+                console.log(val.raw.uid);
+                const img = document.getElementById(val.raw.uid);
+                img.parentNode.remove();
+            },
             borderStyle() {
                 const a = document.getElementsByClassName('resize-handle')
                 // 给每个元素添加新的CSS类
-                const status = a[0].style['display']
-                for (var i = 0; i < a.length; i++) {
-                    if (status == 'none') {
-                        a[i].style['display'] = 'block'
-                    } else {
-                        a[i].style['display'] = 'none'
+                if(a.length){
+                    const status = a[a.length-1].style['display']
+                    for (var i = 0; i < a.length; i++) {
+                        if (status == 'none') {
+                            a[i].style['display'] = 'block'
+                        } else {
+                            a[i].style['display'] = 'none'
+                        }
                     }
                 }
             },
