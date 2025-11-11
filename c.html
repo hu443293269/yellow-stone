@@ -16,7 +16,8 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #2c3e50;
+            /* background-color: #2c3e50;*/
+            background-image: url(./image/背景.png); 
             margin: 0;
         }
 
@@ -635,6 +636,31 @@
         .el-upload-list--picture-card {
             flex-wrap: nowrap
         }
+
+        /* 信息层 */
+        .informatioin {
+            position: fixed;
+            right: 20px;
+            background-image: url('./image/info-background.png');
+            background-size: 100% 100%;
+            padding: 10px;
+            z-index: 50;
+            width: 380px;
+            height: 500px;
+            border-radius: 5px;
+        }
+        .el-descriptions {
+            background: transparent;
+        }
+        .el-descriptions__body {
+            background: transparent;
+        }
+        .el-descriptions__label {
+            color: #fff !important;
+        }
+        .el-descriptions__content {
+            color: #fff !important;
+        }
     </style>
 </head>
 
@@ -659,7 +685,7 @@
                     </el-select>
                 </div>
                 <div style="margin-top: 20px;">
-                    <span style="color: #fff;">类型：</span>
+                    <span style="color: #fff;">配列：</span>
                     <el-select v-model="type" @change="typeChange">
                         <el-option label="108" :value="1"></el-option>
                         <el-option label="82" :value="2"></el-option>
@@ -726,6 +752,13 @@
                     :style="{height:item.divideHeight?item.divideHeight+'px':'1px', width:item.divideLength?item.divideLength+'px':'100%'}">
                 </div>
             </div>
+        </div>
+        <div class="informatioin">
+            <el-descriptions title="重要信息" column="1">
+                <el-descriptions-item label="微信客服：" :column="12">Oscar_one  （新粉丝可享受20元优惠）</el-descriptions-item>
+                <el-descriptions-item label="抠图AI网址：">https://cutout.designkit.com/edit</el-descriptions-item>
+                <el-descriptions-item label="淘宝/抖音店铺：">登德键客</el-descriptions-item>
+            </el-descriptions>
         </div>
     </div>
 
