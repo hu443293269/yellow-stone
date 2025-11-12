@@ -7,6 +7,7 @@
     <script src="./vue.js"></script>
     <!-- Import component library -->
     <script src="./element.js"></script>
+    <script src="./icon.js"></script>
     <link rel="icon" type="image/png" href="./image/logo.png">
     <meta charset="UTF-8">
     <title>登德键客</title>
@@ -638,7 +639,7 @@
         }
 
         /* 信息层 */
-        .informatioin {
+        .information {
             position: fixed;
             right: 20px;
             background-image: url('./image/info-background.png');
@@ -661,6 +662,11 @@
         .el-descriptions__content {
             color: #fff !important;
         }
+        .message {
+            position: relative;
+            right: 30px;
+            top: 10px;
+        }
     </style>
 </head>
 
@@ -673,10 +679,10 @@
                 </el-upload>
             </el-col>
             <el-col :span="6">
-                <el-button type="primary" @click="borderStyle">图片大小</el-button>
-                <el-button type="primary" @click="hatChange">键帽格式</el-button>
-                <el-button type="primary" @click="wordStyle">文字显影</el-button>
-                <el-button type="primary" @click="carve">正刻/侧刻</el-button>
+                <el-button type="primary" @click="borderStyle">图片编辑</el-button>
+                <!-- <el-button type="primary" @click="hatChange">键帽格式</el-button> -->
+                <el-button type="primary" @click="wordStyle">字母显影</el-button>
+                <!-- <el-button type="primary" @click="carve">正刻/侧刻</el-button> -->
                 <div style="margin-top: 20px;">
                     <span style="color: #fff;">底座颜色：</span>
                     <el-select v-model="seatColor" @change="seatChange">
@@ -753,12 +759,20 @@
                 </div>
             </div>
         </div>
-        <div class="informatioin">
+        <div class="information" v-show="infoShow">
+            <div>
+                <img src="./image/关闭.png" width="20" style="cursor: pointer; float: right;" @click="infoShow = false">
+            </div>
             <el-descriptions title="重要信息" column="1">
                 <el-descriptions-item label="微信客服：" :column="12">Oscar_one  （新粉丝可享受20元优惠）</el-descriptions-item>
                 <el-descriptions-item label="抠图AI网址：">https://cutout.designkit.com/edit</el-descriptions-item>
                 <el-descriptions-item label="淘宝/抖音店铺：">登德键客</el-descriptions-item>
             </el-descriptions>
+        </div>
+        <div class="message" v-show="!infoShow">
+            <div>
+                <img src="./image/消息.png" width="20" style="cursor: pointer; float: right;" @click="infoShow = true">
+            </div>
         </div>
     </div>
 
@@ -1265,16 +1279,35 @@
                     { divide: 20, word: '▶' }]
                 }
                 ],
-                type: 1
+                type: 1,
+                infoShow: true,
             }
         },
         methods: {
             wordStyle() {
                 const layout = document.getElementsByClassName('word-layout')
+                const carve = document.getElementsByClassName('container-word')                             
                 if (layout[0].style.display === 'block') {
-                    layout[0].style.display = 'none'
+                    if (carve[0].style['top'] === '0px' || carve[0].style['top'] === '') {
+                        for (const key in carve) {
+                            if (Object.prototype.hasOwnProperty.call(carve, key)) {
+                                const element = carve[key];
+                                element.style['top'] = '44px'
+                                element.style['font-size'] = '10px'
+                            }
+                        }
+                    } else if(carve[0].style['top'] === '44px'){                                        
+                        layout[0].style.display = 'none'
+                    }
                 } else {
                     layout[0].style.display = 'block'
+                    for (const key in carve) {
+                        if (Object.prototype.hasOwnProperty.call(carve, key)) {
+                            const element = carve[key];
+                            element.style['top'] = '0'
+                            element.style['font-size'] = '13px'
+                        }
+                    }
                 }
             },
             carve() {
@@ -1287,13 +1320,6 @@
                             element.style['font-size'] = '10px'
                         }
                     }
-                    // const plus = document.getElementsByClassName('plus')
-                    // for (const key in plus) {
-                    //     if (Object.prototype.hasOwnProperty.call(plus, key)) {
-                    //         const element = plus[key];
-                    //         element.style['top'] = '220px'
-                    //     }
-                    // }
                 } else {                                        
                     for (const key in carve) {
                         if (Object.prototype.hasOwnProperty.call(carve, key)) {
@@ -1302,13 +1328,6 @@
                             element.style['font-size'] = '13px'
                         }
                     }
-                    // const plus = document.getElementsByClassName('plus')
-                    // for (const key in plus) {
-                    //     if (Object.prototype.hasOwnProperty.call(plus, key)) {
-                    //         const element = plus[key];
-                    //         element.style['top'] = '290px'
-                    //     }
-                    // }
                 }
             },
             uploadChange(val) {
