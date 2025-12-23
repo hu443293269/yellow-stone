@@ -107,7 +107,7 @@
 
         .resize-handle {
             position: absolute;
-            background-color: #333;
+            background-color: rgb(11 9 8 / 20%);
         }
 
         .resize-handle.top {
@@ -672,7 +672,7 @@
 
 <body>
     <div id="app">
-        <el-row style="padding:20px;height: 200px;">
+        <el-row style="padding:20px;height: 200px;z-index: 9999;">
             <el-col :span="14" style="overflow: auto;">
                 <el-upload action="#" list-type="picture-card" :auto-upload="false" :on-change="uploadChange" :before-remove="removeFile">
                     <span>选择图片+</span>
