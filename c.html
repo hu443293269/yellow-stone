@@ -7,7 +7,7 @@
     <script src="./vue.js"></script>
     <!-- Import component library -->
     <script src="./element.js"></script>
-    <script src="./icon.js"></script>
+    <!-- <script src="./icon.js"></script> -->
     <link rel="icon" type="image/png" href="./image/logo.png">
     <meta charset="UTF-8">
     <title>登德键客</title>
@@ -672,8 +672,8 @@
 
 <body>
     <div id="app">
-        <el-row style="padding:20px;height: 200px;z-index: 9999;">
-            <el-col :span="14" style="overflow: auto;">
+        <el-row style="padding:20px;height: 200px;">
+            <el-col :span="14" style="overflow: auto;z-index: 99;">
                 <el-upload action="#" list-type="picture-card" :auto-upload="false" :on-change="uploadChange" :before-remove="removeFile">
                     <span>选择图片+</span>
                 </el-upload>
@@ -891,7 +891,7 @@
     const HelloVueApp = {
         data() {
             return {
-                color: '#ffffff',
+                color: '#fff',
                 seatColor: '#fff',
                 hatList: [],
                 hatList1:[
